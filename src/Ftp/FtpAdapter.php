@@ -251,7 +251,7 @@ class FtpAdapter implements FilesystemAdapter
 
     public function createDirectory(string $path, Config $config): void
     {
-        $this->ensureDirectoryExists($path, $config->get('directory_visibility', $config->get('visibility')));
+        $this->ensureDirectoryExists($path, $config->get(Config::OPTION_DIRECTORY_VISIBILITY, $config->get(Config::OPTION_VISIBILITY)));
     }
 
     public function setVisibility(string $path, string $visibility): void
@@ -437,7 +437,9 @@ class FtpAdapter implements FilesystemAdapter
 
         if ($isDirectory) {
             return new DirectoryAttributes(
-                $path, $this->visibilityConverter->inverseForDirectory($permissions), $lastModified
+                $path,
+                $this->visibilityConverter->inverseForDirectory($permissions),
+                $lastModified
             );
         }
 
@@ -527,7 +529,7 @@ class FtpAdapter implements FilesystemAdapter
             $path = $this->escapePath($path);
         }
 
-        if (! $this->isServerSupportingListOptions()) {
+        if ( ! $this->isServerSupportingListOptions()) {
             $options = '';
         }
 
@@ -557,7 +559,7 @@ class FtpAdapter implements FilesystemAdapter
             $readStream = $this->readStream($source);
             $visibility = $config->get(Config::OPTION_VISIBILITY);
 
-            if ($visibility === null && $config->get('retain_visibility', true)) {
+            if ($visibility === null && $config->get(Config::OPTION_RETAIN_VISIBILITY, true)) {
                 $config = $config->withSetting(Config::OPTION_VISIBILITY, $this->visibility($source)->visibility());
             }
 

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace League\Flysystem\Local;
 
+use const LOCK_EX;
 use League\Flysystem\AdapterTestUtilities\FilesystemAdapterTestCase;
 use League\Flysystem\Config;
 use League\Flysystem\Filesystem;
@@ -35,7 +36,6 @@ use function mkdir;
 use function strnatcasecmp;
 use function symlink;
 use function usort;
-use const LOCK_EX;
 
 /**
  * @group local
@@ -85,6 +85,7 @@ class LocalFilesystemAdapterTest extends FilesystemAdapterTestCase
 
     /**
      * @test
+     *
      * @see https://github.com/thephpleague/flysystem/issues/1442
      */
     public function falling_back_to_extension_lookup_when_finding_mime_type_of_empty_file(): void
@@ -128,6 +129,7 @@ class LocalFilesystemAdapterTest extends FilesystemAdapterTestCase
 
     /**
      * @test
+     *
      * @see https://github.com/thephpleague/flysystem/issues/1606
      */
     public function deleting_a_file_during_contents_listing(): void
@@ -153,6 +155,7 @@ class LocalFilesystemAdapterTest extends FilesystemAdapterTestCase
             public function inverseForFile(int $visibility): string
             {
                 unlink(LocalFilesystemAdapterTest::ROOT . '/file-1.txt');
+
                 return $this->visibility->inverseForFile($visibility);
             }
 
@@ -584,6 +587,23 @@ class LocalFilesystemAdapterTest extends FilesystemAdapterTestCase
         $this->assertFileHasPermissions(static::ROOT . '/first.txt', 0644);
         $this->assertFileExists(static::ROOT . '/second.txt');
         $this->assertFileHasPermissions(static::ROOT . '/second.txt', 0600);
+    }
+
+    /**
+     * @test
+     */
+    public function copying_a_file_retaining_visibility(): void
+    {
+        $adapter = new LocalFilesystemAdapter(static::ROOT, new PortableVisibilityConverter());
+        $adapter->write('first.txt', 'contents', new Config(['visibility' => 'private']));
+        $adapter->copy('first.txt', 'retain.txt', new Config());
+        $adapter->copy('first.txt', 'do-not-retain.txt', new Config(['retain_visibility' => false]));
+        $this->assertFileExists(static::ROOT . '/first.txt');
+        $this->assertFileHasPermissions(static::ROOT . '/first.txt', 0600);
+        $this->assertFileExists(static::ROOT . '/retain.txt');
+        $this->assertFileHasPermissions(static::ROOT . '/retain.txt', 0600);
+        $this->assertFileExists(static::ROOT . '/do-not-retain.txt');
+        $this->assertFileHasPermissions(static::ROOT . '/do-not-retain.txt', 0644);
     }
 
     /**

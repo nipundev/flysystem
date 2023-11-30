@@ -39,7 +39,6 @@ use function array_key_exists;
 use function base64_decode;
 use function bin2hex;
 use function count;
-use function in_array;
 use function rtrim;
 use function sprintf;
 use function strlen;
@@ -350,7 +349,7 @@ class GoogleCloudStorageAdapter implements FilesystemAdapter, PublicUrlGenerator
         try {
             $visibility = $config->get(Config::OPTION_VISIBILITY);
 
-            if ($visibility === null && $config->get('retain_visibility', true)) {
+            if ($visibility === null && $config->get(Config::OPTION_RETAIN_VISIBILITY, true)) {
                 $visibility = $this->visibility($source)->visibility();
             }
 
